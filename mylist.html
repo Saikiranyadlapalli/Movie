@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My List</title>
+    <style>
+        /* CSS styles for the taskbar */
+        .taskbar {
+            background-color: #282c34;
+            color: white;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* CSS styles for the Go Back button */
+        .go-back-button {
+            color: white;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* Rest of the CSS styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .movie-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .movie-item {
+            text-align: center;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: #fff;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .movie-item img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .remove-button {
+            margin-top: 10px;
+            padding: 5px 10px;
+            border-radius: 4px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="taskbar">
+        <button class="go-back-button" onclick="window.location.href = 'index.html'">Go Back</button>
+        <h1>My List</h1>
+        <div></div> <!-- Placeholder for any other taskbar items -->
+    </div>
+
+    <div class="container">
+        <div class="movie-list" id="myMovieList"></div>
+    </div>
+
+    <script>
+        // JavaScript code for fetching and displaying the user's list (similar to before)
+        async function fetchMyList() {
+            // Fetch the user's list data and populate the HTML
+            const response = await fetch('mylist.php');
+            const data = await response.json();
+
+            const myMovieList = document.getElementById('myMovieList');
+
+            if (data.status === 'success') {
+                if (data.movies.length > 0) {
+                    data.movies.forEach(movie => {
+                        const movieItem = document.createElement('div');
+                        movieItem.className = 'movie-item';
+                        movieItem.innerHTML = `
+                            <h2>${movie.title}</h2>
+                            <p>${movie.year}</p>
+                            <img src="${movie.poster}" alt="${movie.title}">
+                            <button class="remove-button" onclick="removeFromMyList('${movie.imdbID}')">Remove from My List</button>
+                        `;
+                        myMovieList.appendChild(movieItem);
+                    });
+                } else {
+                    myMovieList.innerHTML = '<p>No movies in your list</p>';
+                }
+            } else {
+                myMovieList.innerHTML = '<p>Failed to fetch your movie list</p>';
+            }
+        }
+
+        // Function to remove movie from the list
+        async function removeFromMyList(imdbID) {
+            const response = await fetch('mylist.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    remove_from_list: true,
+                    imdbID: imdbID
+                })
+            });
+
+            const data = await response.json();
+            if (data.status === 'success') {
+                // Reload the page after successful removal
+                location.reload();
+            } else {
+                alert('Failed to remove movie from list');
+            }
+        }
+
+        // Call fetchMyList() when the page loads
+        fetchMyList();
+    </script>
+</body>
+</html>
